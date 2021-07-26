@@ -10,8 +10,5 @@ export_presets.cfg
 .mono/
 data_*/
 
-# Builds
-build/
-
 # VSCode
 .vscode/
