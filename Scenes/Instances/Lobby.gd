@@ -1,19 +1,21 @@
 extends Node
 
 var players = []
-var player_names = {}
+var names = []
+var player_names = {} # map from player id to player name
 
 func add_player(player_id, name):
 	name = name.strip_edges()
 
 	var duplicate_index = 1
 	var original_name = name
-	while name in players:
+	while name in names:
 		name = original_name.substr(0,8) + " (" + str(duplicate_index) + ")"
 		duplicate_index += 1
 
 	players.append(player_id)
 	player_names[player_id] = name
+	names.append(name)
 
 func remove_player(player_id):
 	var player_index = players.find(player_id)

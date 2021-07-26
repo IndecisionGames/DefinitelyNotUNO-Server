@@ -47,7 +47,7 @@ func remove_from_lobby_local(player_id):
 
 func update_lobby():
 	var names = Lobby.get_ordered_player_names()
+	print("Players: " + str(names))
 	for player in Lobby.get_player_ids():
 		var pos = Lobby.get_player_pos(player)
-		print(str(player) + " - " + str(pos) + " - " + str(names))
 		rpc_id(player, "update_lobby", pos, names)
