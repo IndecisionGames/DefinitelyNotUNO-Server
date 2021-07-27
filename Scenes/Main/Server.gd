@@ -30,7 +30,6 @@ func _peer_disconnected(player_id):
 	remove_from_lobby_local(player_id)
 	print("Player " + str(player_id) + " disconnected")
 
-
 #### LOBBY ####
 remote func add_to_lobby(name):
 	var player_id = get_tree().get_rpc_sender_id()
@@ -51,3 +50,10 @@ func update_lobby():
 	for player in Lobby.get_player_ids():
 		var pos = Lobby.get_player_pos(player)
 		rpc_id(player, "update_lobby", pos, names)
+
+ #### Game Setup ####
+remote func start_game():
+	for i in range(Lobby.players.size()):
+		rpc_id(Lobby.players[i], "set_rules", {"NUM_PLAYERS": Lobby.players.size(), "SEED": 2021})
+		rpc_id(Lobby.players[i], "set_game_state", i)
+		rpc_id(Lobby.players[i], "start_game")
