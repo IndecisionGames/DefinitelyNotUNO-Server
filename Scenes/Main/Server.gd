@@ -97,5 +97,5 @@ remote func request_draw_card(player_id):
 remote func request_uno(player_id):
 		emit_signal("uno_request", player_id)
 
-remote func emit_wild_pick(colour):
+remote func wild_pick(colour):
 		emit_signal("wild_pick", colour)
