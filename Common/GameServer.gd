@@ -42,8 +42,6 @@ func _generate_deck():
 	deck.shuffle()
 
 func _generate_hands():
-	for _i in range(Rules.NUM_PLAYERS):
-		GameState.players.append(GameState.Player.new())
 	for _i in range(Rules.STARTING_HAND_SIZE):
 		for i in range(Rules.NUM_PLAYERS):
 			GameState.players[i].cards.append(_draw())

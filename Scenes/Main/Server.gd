@@ -63,6 +63,10 @@ remote func start_game():
 	Rules.NUM_PLAYERS = Lobby.players.size()
 	for i in range(Lobby.players.size()):
 		rpc_id(Lobby.players[i], "set_player", i)
+		var player = GameState.Player.new()
+		player.name = Lobby.player_names[Lobby.players[i]]
+		GameState.players.append(player)
+
 	GameServer.start_game()
 
 # Server to Client
@@ -74,10 +78,10 @@ func emit_game_update():
 	rpc("emit_game_update", GameState.to_dict())
 
 func emit_card_added(player, card):
-	rpc_id(Lobby.players[player], "emit_card_added", player, card.to_dict())
+	rpc("emit_card_added", player, card.to_dict())
 
 func emit_card_removed(player, card):
-	rpc_id(Lobby.players[player], "emit_card_removed", player, card.to_dict())
+	rpc("emit_card_removed", player, card.to_dict())
 
 func request_wild_pick(player):
 	rpc_id(Lobby.players[player], "request_wild_pick", player)
