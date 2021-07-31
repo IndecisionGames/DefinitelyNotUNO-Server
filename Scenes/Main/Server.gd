@@ -1,10 +1,13 @@
 extends Node
 
+const CardBase = preload("res://Common/CardBase.gd")
+
 var network = NetworkedMultiplayerENet.new()
 var port = 31416
 var max_players = 8
 
 onready var Lobby = get_node("Lobby")
+onready var GameServer = get_node("GameServer")
 
 var players = 0
 
@@ -51,9 +54,48 @@ func update_lobby():
 		var pos = Lobby.get_player_pos(player)
 		rpc_id(player, "update_lobby", pos, names)
 
- #### Game Setup ####
+
+
+# Game setup
 remote func start_game():
+	randomize()
+	# TODO: Add Player Names to GameState
+	Rules.NUM_PLAYERS = Lobby.players.size()
 	for i in range(Lobby.players.size()):
-		rpc_id(Lobby.players[i], "set_rules", {"NUM_PLAYERS": Lobby.players.size(), "SEED": 2021})
-		rpc_id(Lobby.players[i], "set_game_state", i)
-		rpc_id(Lobby.players[i], "start_game")
+		rpc_id(Lobby.players[i], "set_player", i)
+	GameServer.start_game()
+
+# Server to Client
+func emit_game_start():
+	print("Starting Game")
+	rpc("emit_game_start", Rules.to_dict(), GameState.to_dict())
+
+func emit_game_update():
+	rpc("emit_game_update", GameState.to_dict())
+
+func emit_card_added(player, card):
+	rpc_id(Lobby.players[player], "emit_card_added", player, card.to_dict())
+
+func emit_card_removed(player, card):
+	rpc_id(Lobby.players[player], "emit_card_removed", player, card.to_dict())
+
+func request_wild_pick(player):
+	rpc_id(Lobby.players[player], "request_wild_pick", player)
+
+# Client to Server
+signal play_request(player, card)
+signal draw_request(player)
+signal uno_request(player)
+signal wild_pick(colour)
+
+remote func request_play_card(player_id, card):
+		emit_signal("play_request", player_id, CardBase.new().load_from_dict(card))
+
+remote func request_draw_card(player_id):
+		emit_signal("draw_request", player_id)
+
+remote func request_uno(player_id):
+		emit_signal("uno_request", player_id)
+
+remote func emit_wild_pick(colour):
+		emit_signal("wild_pick", colour)
