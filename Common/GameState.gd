@@ -29,7 +29,7 @@ var pickup_count = 0
 
 func is_playable(player, proposed_card: CardBase) -> bool:
 	if player != current_player:
-		if Rules.INTERRUPT:
+		if Rules.JUMP_IN:
 			# TODO: Stop from affecting player who has started turn. Otherwise someone could play mid/post draw
 			if proposed_card.type == current_card_type and proposed_card.colour == current_card_colour:
 				return true
@@ -38,7 +38,7 @@ func is_playable(player, proposed_card: CardBase) -> bool:
 	if pickup_required:
 		# Require matching Plus 2
 		if pickup_type == Types.pickup_type.PLUS2:
-			if proposed_card.type == Types.card_type.CARD_PLUS2:
+			if proposed_card.type == Types.card_type.CARD_PLUS2 or (Rules.STACK_PLUS4_ON_PLUS2 and Types.card_type.CARD_PLUS4):
 				return true
 		# Require matching Plus 4
 		if pickup_type == Types.pickup_type.PLUS4:

@@ -26,20 +26,20 @@ func start_game():
 	_generate_deck()
 	_generate_hands()
 
-	_play_card(0, _draw(), true)
+	_play_card(0, _draw()[0], true)
 	Server.emit_game_start()
 
 func _generate_deck():
 	deck = []
-	for colour in Rules.standard_colours:
-		for type in Rules.standard_types:
-			for _i in range(Rules.NUM_EACH_CARD):
+	for colour in standard_colours:
+		for type in standard_cards:
+			for _i in range(standard_cards[type]):
 				var new_card = CardBase.new()
 				new_card.setup(colour, type)
 				deck.append(new_card)
 
-	for type in Rules.wild_types:
-		for _i in range(Rules.NUM_EACH_WILD_CARD):
+	for type in wild_cards:
+		for _i in range(wild_cards[type]):
 			var new_card = CardBase.new()
 			new_card.setup(Types.card_colour.WILD, type)
 			deck.append(new_card)
@@ -47,9 +47,39 @@ func _generate_deck():
 	deck.shuffle()
 
 func _generate_hands():
-	for _i in range(Rules.STARTING_HAND_SIZE):
-		for i in range(Rules.NUM_PLAYERS):
-			GameState.players[i].cards.append(_draw())
+	for i in range(Rules.NUM_PLAYERS):
+		GameState.players[i].cards = _draw(STARTING_HAND_SIZE)
+
+# Generation Rules
+const STARTING_HAND_SIZE = 7
+
+const standard_colours = [
+	Types.card_colour.RED,
+	Types.card_colour.GREEN,
+	Types.card_colour.BLUE,
+	Types.card_colour.YELLOW
+]
+
+const standard_cards = {
+	Types.card_type.CARD_0: 1,
+	Types.card_type.CARD_1: 2,
+	Types.card_type.CARD_2: 2,
+	Types.card_type.CARD_3: 2,
+	Types.card_type.CARD_4: 2,
+	Types.card_type.CARD_5: 2,
+	Types.card_type.CARD_6: 2,
+	Types.card_type.CARD_7: 2,
+	Types.card_type.CARD_8: 2,
+	Types.card_type.CARD_9: 2,
+	Types.card_type.CARD_SKIP: 2,
+	Types.card_type.CARD_REVERSE: 2,
+	Types.card_type.CARD_PLUS2: 2,
+}
+
+const wild_cards = {
+	Types.card_type.CARD_PLUS4: 4,
+	Types.card_type.CARD_WILD: 4,
+}
 
 # Game
 func _play_card(player, card: CardBase, opening_card = false):
@@ -99,14 +129,13 @@ func _play_card(player, card: CardBase, opening_card = false):
 
 	var idx = card.is_in(GameState.get_current_player().cards)
 	GameState.get_current_player().cards.remove(idx)
-	Server.emit_card_removed(GameState.current_player, card)
+	Server.emit_card_played(GameState.current_player, card)
 	_turn_end()
 
 func _draw_cards(player):
-	for _i in range(max(1,GameState.pickup_count)):
-		var card = _draw()
-		GameState.players[player].cards.append(card)
-		Server.emit_card_added(player, card)
+	var cards = _draw(max(1,GameState.pickup_count))
+	GameState.players[player].cards.append_array(cards)
+	Server.emit_cards_drawn(player, cards)
 
 	GameState.players[player].uno_status = false
 	GameState.pickup_required = false
@@ -124,10 +153,9 @@ func _turn_end():
 
 	# Automatic Uno Penalty 
 	if GameState.get_current_player().cards.size() == 1 && !GameState.get_current_player().uno_status:
-		for _i in range(Rules.UNO_CARD_PENALTY):
-			var card = _draw()
-			GameState.get_current_player().cards.append(card)
-			Server.emit_card_added(GameState.current_player, card)
+		var cards = _draw(Rules.UNO_CARD_PENALTY)
+		GameState.get_current_player().cards.append_array(cards)
+		Server.emit_cards_drawn(GameState.current_player, cards)
 
 	var turn_increment = 1
 
@@ -150,14 +178,16 @@ func _turn_end():
 		GameState.play_in_progress = false
 		Server.emit_game_update()
 
-func _draw():
-	# Refresh cards with PlayPile if running out
-	if len(deck) <= 1:
-		while play_pile.size() > 1:
-			deck.append(play_pile.pop_front())
-		deck.shuffle()
+func _draw(num_to_draw = 1):
+	var drawn = []
+	for _i in range(num_to_draw):
+		if len(deck) <= 1:	# refresh cards with play_pile if running out
+			while play_pile.size() > 1:
+				deck.append(play_pile.pop_front())
+			deck.shuffle()
 
-	return deck.pop_front()
+		drawn.append(deck.pop_front())
+	return drawn
 
 func _check_win() -> bool:
 	# Change to i

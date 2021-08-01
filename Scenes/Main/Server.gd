@@ -80,11 +80,14 @@ remote func emit_game_won(player):
 func emit_game_update():
 	rpc("emit_game_update", GameState.to_dict())
 
-func emit_card_added(player, card):
-	rpc("emit_card_added", player, card.to_dict())
+func emit_cards_drawn(player, cards):
+	var drawn_cards = []
+	for card in cards:
+		drawn_cards.append(card.to_dict())
+	rpc("emit_cards_drawn", player, drawn_cards)
 
-func emit_card_removed(player, card):
-	rpc("emit_card_removed", player, card.to_dict())
+func emit_card_played(player, card):
+	rpc("emit_card_played", player, card.to_dict())
 
 func request_wild_pick(player):
 	rpc_id(Lobby.players[player], "request_wild_pick", player)
