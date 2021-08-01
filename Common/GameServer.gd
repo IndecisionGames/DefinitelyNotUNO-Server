@@ -9,12 +9,17 @@ onready var Server = get_parent()
 var deck = []
 var play_pile = []
 var wild_opening: bool
+var empty_game_state
 
 func _ready():
 	Server.connect("play_request", self, "_play_card")
 	Server.connect("draw_request", self, "_draw_cards")
 	Server.connect("uno_request", self, "_on_uno_request")
 	Server.connect("wild_pick", self, "_on_wild_pick")
+	empty_game_state = GameState.to_dict()
+
+func reset_game():
+	GameState.load_from_dict(empty_game_state)
 
 # Generation
 func start_game():
@@ -110,6 +115,9 @@ func _draw_cards(player):
 	_turn_end()
 
 func _turn_end():
+	if _check_win():
+		GameState.waiting_action = true
+		
 	# Prevent turn end if waiting for input
 	if GameState.waiting_action:
 		return
@@ -150,6 +158,14 @@ func _draw():
 		deck.shuffle()
 
 	return deck.pop_front()
+
+func _check_win() -> bool:
+	# Change to i
+	for i in range(GameState.players.size()):
+		if GameState.players[i].cards.size() == 0:
+			Server.emit_game_won(i)
+			return true
+	return false
 
 # Player signals
 func _on_wild_pick(colour):

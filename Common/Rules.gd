@@ -4,7 +4,7 @@ extends Node
 var NUM_PLAYERS = 4
 
 var INTERRUPT = false
-var UNO_CARD_PENALTY = 1
+var UNO_CARD_PENALTY = 2
 # Not implemented
 const PICKUP_STACKING = false
 const PLAY_AFTER_DRAW = false
