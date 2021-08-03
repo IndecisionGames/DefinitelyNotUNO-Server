@@ -150,9 +150,6 @@ func _draw_cards(player):
 	_turn_end()
 
 func _turn_end():
-	if _check_win():
-		GameState.waiting_action = true
-		
 	# Prevent turn end if waiting for input
 	if GameState.waiting_action:
 		return
@@ -183,6 +180,7 @@ func _turn_end():
 
 		GameState.play_in_progress = false
 		Server.emit_game_update()
+		_check_win()
 
 func _draw(num_to_draw = 1):
 	var drawn = []
@@ -195,13 +193,12 @@ func _draw(num_to_draw = 1):
 		drawn.append(deck.pop_front())
 	return drawn
 
-func _check_win() -> bool:
-	# Change to i
+func _check_win():
 	for i in range(GameState.players.size()):
 		if GameState.players[i].cards.size() == 0:
+			GameState.waiting_action = true
 			Server.emit_game_won(i)
-			return true
-	return false
+			return
 
 # Player signals
 func _on_wild_pick(colour):
