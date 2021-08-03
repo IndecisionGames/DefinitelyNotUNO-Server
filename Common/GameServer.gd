@@ -133,6 +133,7 @@ func _play_card(player, card: CardBase, opening_card = false):
 	_turn_end()
 
 func _draw_cards(player):
+	var forced_pickup = GameState.pickup_count > 0
 	var cards = _draw(max(1,GameState.pickup_count))
 	GameState.players[player].cards.append_array(cards)
 	Server.emit_cards_drawn(player, cards)
@@ -141,6 +142,11 @@ func _draw_cards(player):
 	GameState.pickup_required = false
 	GameState.pickup_type = Types.pickup_type.NULL
 	GameState.pickup_count = 0
+	
+	# Allow player to play newly drawn card
+	if Rules.PLAY_AFTER_DRAW and !forced_pickup and GameState.is_playable(player, cards[0]):
+		return 
+
 	_turn_end()
 
 func _turn_end():
