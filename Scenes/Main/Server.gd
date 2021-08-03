@@ -3,6 +3,7 @@ extends Node
 const CardBase = preload("res://Common/CardBase.gd")
 
 var network = NetworkedMultiplayerENet.new()
+var upnp = UPNP.new()
 var port = 31416
 var max_players = 8
 
@@ -13,8 +14,14 @@ var players = 0
 
 func _ready():
 	start_server()
+	
+func _exit_tree():
+	upnp.delete_port_mapping(port, port)
 
 func start_server():
+	upnp.discover()
+	upnp.add_port_mapping(port, port)
+	
 	network.create_server(port, max_players)
 	get_tree().set_network_peer(network)
 	print("Server started")
