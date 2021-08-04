@@ -76,13 +76,13 @@ remote func start_game():
 
 	GameServer.start_game()
 
+remote func emit_game_won(player):
+	rpc("emit_game_won", player)
+
 # Server to Client
 func emit_game_start():
 	print("Starting Game")
 	rpc("emit_game_start", Rules.to_dict(), GameState.to_dict())
-
-remote func emit_game_won(player):
-	rpc("emit_game_won", player)
 
 func emit_game_update():
 	rpc("emit_game_update", GameState.to_dict())
@@ -95,6 +95,9 @@ func emit_cards_drawn(player, cards):
 
 func emit_card_played(player, card):
 	rpc("emit_card_played", player, card.to_dict())
+
+func emit_event(event_type, player):
+	rpc("emit_event", event_type, player)
 
 func request_wild_pick(player):
 	rpc_id(Lobby.players[player], "request_wild_pick", player)

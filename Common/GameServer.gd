@@ -51,7 +51,7 @@ func _generate_hands():
 		GameState.players[i].cards = _draw(STARTING_HAND_SIZE)
 
 # Generation Rules
-const STARTING_HAND_SIZE = 7
+const STARTING_HAND_SIZE = 2
 
 const standard_colours = [
 	Types.card_colour.RED,
@@ -88,19 +88,26 @@ func _play_card(player, card: CardBase, opening_card = false):
 		return
 
 	GameState.play_in_progress = true
-	GameState.current_player = player
 
+	if player != GameState.current_player:
+		Server.emit_event(Types.event.JUMP_IN, player)
+
+	GameState.current_player = player
 	GameState.current_card_type  = card.type
 	GameState.current_card_colour = card.colour
 
 	# Card specific OnPlay effects
 	if GameState.current_card_type == Types.card_type.CARD_SKIP:
+		Server.emit_event(Types.event.SKIP, GameState.current_player)
 		GameState.skip_required = true
 
 	if GameState.current_card_type == Types.card_type.CARD_REVERSE:
+		Server.emit_event(Types.event.REVERSE, GameState.current_player)
 		GameState.play_order_clockwise = !GameState.play_order_clockwise
 
 	if GameState.current_card_type == Types.card_type.CARD_PLUS2 or GameState.current_card_type == Types.card_type.CARD_PLUS4:
+		if GameState.pickup_required:
+			Server.emit_event(Types.event.STACK_CARD, GameState.current_player)
 		GameState.pickup_required = true
 
 		if GameState.current_card_type == Types.card_type.CARD_PLUS2:
@@ -157,6 +164,7 @@ func _turn_end():
 	# Automatic Uno Penalty 
 	if GameState.get_current_player().cards.size() == 1 && !GameState.get_current_player().uno_status:
 		var cards = _draw(Rules.UNO_CARD_PENALTY)
+		Server.emit_event(Types.event.UNO_PENALTY, GameState.current_player)
 		GameState.get_current_player().cards.append_array(cards)
 		Server.emit_cards_drawn(GameState.current_player, cards)
 
@@ -212,4 +220,5 @@ func _on_wild_pick(colour):
 
 func _on_uno_request(player):
 	GameState.players[player].uno_status = true
+	Server.emit_event(Types.event.UNO, player)
 	Server.emit_game_update()

@@ -32,3 +32,12 @@ enum pickup_type {
 	PLUS2, 
 	PLUS4,
 }
+
+enum event {
+	SKIP,
+	REVERSE,
+	UNO,
+	UNO_PENALTY,
+	STACK_CARD,
+	JUMP_IN,
+}
