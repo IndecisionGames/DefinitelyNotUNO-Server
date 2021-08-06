@@ -4,7 +4,7 @@ extends Node
 var NUM_PLAYERS = 4
 
 var UNO_CARD_PENALTY = 2
-var PLAY_AFTER_DRAW = true
+var PLAY_AFTER_DRAW = false
 var JUMP_IN = false
 var STACK_PLUS4_ON_PLUS2 = false
 # Not implemented
@@ -22,8 +22,8 @@ func to_dict():
 	}
 
 func load_from_dict(dict):
-	NUM_PLAYERS = dict.get("NUM_PLAYERS")
-	UNO_CARD_PENALTY = dict.get("UNO_CARD_PENALTY")
-	PLAY_AFTER_DRAW = dict.get("PLAY_AFTER_DRAW")
-	JUMP_IN = dict.get("JUMP_IN")
-	STACK_PLUS4_ON_PLUS2 = dict.get("STACK_PLUS4_ON_PLUS2")
+	NUM_PLAYERS = dict.get("NUM_PLAYERS", NUM_PLAYERS)
+	UNO_CARD_PENALTY = dict.get("UNO_CARD_PENALTY", UNO_CARD_PENALTY)
+	PLAY_AFTER_DRAW = dict.get("PLAY_AFTER_DRAW", PLAY_AFTER_DRAW)
+	JUMP_IN = dict.get("JUMP_IN", JUMP_IN)
+	STACK_PLUS4_ON_PLUS2 = dict.get("STACK_PLUS4_ON_PLUS2", STACK_PLUS4_ON_PLUS2)

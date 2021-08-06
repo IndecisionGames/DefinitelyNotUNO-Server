@@ -11,6 +11,8 @@ var play_pile = []
 var wild_opening: bool
 var empty_game_state
 
+var rng = RandomNumberGenerator.new()
+
 func _ready():
 	Server.connect("play_request", self, "_play_card")
 	Server.connect("draw_request", self, "_draw_cards")
@@ -23,10 +25,11 @@ func reset_game():
 
 # Generation
 func start_game():
+	randomize()
 	_generate_deck()
 	_generate_hands()
 
-	_play_card(0, _draw()[0], true)
+	_play_card(rng.randi_range(0, Rules.NUM_PLAYERS-1), _draw()[0], true)
 	Server.emit_game_start()
 
 func _generate_deck():
@@ -51,7 +54,7 @@ func _generate_hands():
 		GameState.players[i].cards = _draw(STARTING_HAND_SIZE)
 
 # Generation Rules
-const STARTING_HAND_SIZE = 2
+const STARTING_HAND_SIZE = 7
 
 const standard_colours = [
 	Types.card_colour.RED,

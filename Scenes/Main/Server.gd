@@ -64,9 +64,9 @@ func update_lobby():
 
 
 # Game setup
-remote func start_game():
-	randomize()
+remote func start_game(rules):
 	GameServer.reset_game()
+	Rules.load_from_dict(rules)
 	Rules.NUM_PLAYERS = Lobby.players.size()
 	for i in range(Lobby.players.size()):
 		rpc_id(Lobby.players[i], "set_player", i)
