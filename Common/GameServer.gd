@@ -29,7 +29,8 @@ func start_game():
 	_generate_deck()
 	_generate_hands()
 
-	_play_card(rng.randi_range(0, Rules.NUM_PLAYERS-1), _draw()[0], true)
+	GameState.current_player = rng.randi_range(0, Rules.NUM_PLAYERS-1)
+	_play_card(GameState.current_player, _draw()[0], true)
 	Server.emit_game_start()
 
 func _generate_deck():
