@@ -2,7 +2,7 @@ extends Node
 
 const CardBase = preload("res://Common/CardBase.gd")
 
-var network = NetworkedMultiplayerENet.new()
+var network = WebSocketServer.new()
 var upnp = UPNP.new()
 var port = 31416
 var max_players = 8
@@ -22,12 +22,16 @@ func start_server():
 	upnp.discover()
 	upnp.add_port_mapping(port, port)
 	
-	network.create_server(port, max_players)
+	network.listen(port, PoolStringArray(), true)
 	get_tree().set_network_peer(network)
 	print("Server started")
 
 	network.connect("peer_connected", self, "_peer_connected")
 	network.connect("peer_disconnected", self, "_peer_disconnected")
+
+func _process(_delta):
+	if network.is_listening():
+		network.poll()
 
 func _peer_connected(player_id):
 	if players < 8:
