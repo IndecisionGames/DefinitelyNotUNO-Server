@@ -33,7 +33,7 @@ func _peer_connected(player_id):
 	if players < 8:
 		players += 1
 		print("Player " + str(player_id) + " connected")
-		rpc_id(player_id, "join_server", players-1)
+		rpc_id(player_id, "join_server", players-1, players==1)
 
 func _peer_disconnected(player_id):
 	players -= 1
@@ -61,12 +61,14 @@ func update_lobby():
 		var pos = Lobby.get_player_pos(player)
 		rpc_id(player, "update_lobby", pos, names)
 
+remote func update_rules(rules):
+	Rules.load_from_dict(rules)
+	rpc("sync_rules", rules)
 
 
 # Game setup
-remote func start_game(rules):
+remote func start_game():
 	GameServer.reset_game()
-	Rules.load_from_dict(rules)
 	Rules.NUM_PLAYERS = Lobby.players.size()
 	for i in range(Lobby.players.size()):
 		rpc_id(Lobby.players[i], "set_player", i)
