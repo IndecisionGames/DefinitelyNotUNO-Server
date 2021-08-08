@@ -41,29 +41,20 @@ func _peer_connected(player_id):
 
 func _peer_disconnected(player_id):
 	players -= 1
-	remove_from_lobby_local(player_id)
+	Lobby.remove_player(player_id)
 	print("Player " + str(player_id) + " disconnected")
+	update_lobby()
 
-#### LOBBY ####
-remote func add_to_lobby(name):
+# Lobby
+remote func join_lobby(name):
 	var player_id = get_tree().get_rpc_sender_id()
 	Lobby.add_player(player_id, name)
 	update_lobby()
 
-remote func remove_from_lobby():
-	var player_id = get_tree().get_rpc_sender_id()
-	remove_from_lobby_local(player_id)
-
-func remove_from_lobby_local(player_id):
-	Lobby.remove_player(player_id)
-	update_lobby()
-
 func update_lobby():
-	var names = Lobby.get_ordered_player_names()
+	var names = Lobby.get_player_names()
 	print("Players: " + str(names))
-	for player in Lobby.get_player_ids():
-		var pos = Lobby.get_player_pos(player)
-		rpc_id(player, "update_lobby", pos, names)
+	rpc("update_lobby", names)
 
 remote func update_rules(rules):
 	Rules.load_from_dict(rules)
@@ -75,9 +66,10 @@ remote func start_game():
 	GameServer.reset_game()
 	Rules.NUM_PLAYERS = Lobby.players.size()
 	for i in range(Lobby.players.size()):
-		rpc_id(Lobby.players[i], "set_player", i)
+		rpc_id(Lobby.players[i].id, "set_player", i)
+
 		var player = GameState.Player.new()
-		player.name = Lobby.player_names[Lobby.players[i]]
+		player.name = Lobby.players[i].name
 		GameState.players.append(player)
 
 	GameServer.start_game()
@@ -106,7 +98,7 @@ func emit_event(event_type, player):
 	rpc("emit_event", event_type, player)
 
 func request_wild_pick(player):
-	rpc_id(Lobby.players[player], "request_wild_pick", player)
+	rpc_id(Lobby.players[player].id, "request_wild_pick", player)
 
 # Client to Server
 signal play_request(player, card)

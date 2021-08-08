@@ -1,38 +1,34 @@
 extends Node
 
+class Player:
+	var id: int
+	var name: String
+
 var players = []
-var names = []
-var player_names = {} # map from player id to player name
+var names = {}
 
-func add_player(player_id, name):
-	name = name.strip_edges()
+func add_player(player_id, player_name):
+	player_name = player_name.strip_edges()
 
-	var duplicate_index = 1
-	var original_name = name
-	while name in names:
-		name = original_name.substr(0,8) + " (" + str(duplicate_index) + ")"
-		duplicate_index += 1
+	if !names.has(player_name):
+		names[player_name] = 0
+	else:
+		names[player_name] += 1
+		player_name = player_name.substr(0,8) + " (" + str(names[player_name]) + ")"
 
-	players.append(player_id)
-	player_names[player_id] = name
-	names.append(name)
+	var player = Player.new()
+	player.name = player_name
+	player.id = player_id
+	players.append(player)
 
 func remove_player(player_id):
-	var player_index = players.find(player_id)
-	if player_index == -1:
-		return
+	for player in players:
+		if player.id == player_id:
+			players.erase(player)
+			return
 
-	players.remove(player_index)
-	player_names.erase(player_id)
-
-func get_ordered_player_names():
+func get_player_names():
 	var names = []
 	for player in players:
-		names.append(player_names[player])
+		names.append(player.name)
 	return names
-
-func get_player_pos(player_id):
-	return players.find(player_id)
-
-func get_player_ids():
-	return players
