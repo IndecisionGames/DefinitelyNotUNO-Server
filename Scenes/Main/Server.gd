@@ -2,9 +2,10 @@ extends Node
 
 const CardBase = preload("res://Common/CardBase.gd")
 
+const PORT = 31416
+
 var network = WebSocketServer.new()
 var upnp = UPNP.new()
-var port = 31416
 var max_players = 8
 
 onready var Lobby = get_node("Lobby")
@@ -13,21 +14,22 @@ onready var GameServer = get_node("GameServer")
 var players = 0
 
 func _ready():
+	network.connect("peer_connected", self, "_peer_connected")
+	network.connect("peer_disconnected", self, "_peer_disconnected")
+	network.connect("client_connected", self, "_client_connected")
+	network.connect("client_disconnected", self, "_client_disconnected")
 	start_server()
 	
 func _exit_tree():
-	upnp.delete_port_mapping(port, port)
+	upnp.delete_port_mapping(PORT, PORT)
 
 func start_server():
 	upnp.discover()
-	upnp.add_port_mapping(port, port)
+	upnp.add_port_mapping(PORT, PORT)
 	
-	network.listen(port, PoolStringArray(), true)
+	network.listen(PORT, PoolStringArray(), true)
 	get_tree().set_network_peer(network)
 	print("Server started")
-
-	network.connect("peer_connected", self, "_peer_connected")
-	network.connect("peer_disconnected", self, "_peer_disconnected")
 
 func _process(_delta):
 	if network.is_listening():
@@ -44,6 +46,12 @@ func _peer_disconnected(player_id):
 	Lobby.remove_player(player_id)
 	print("Player " + str(player_id) + " disconnected")
 	update_lobby()
+
+func _client_connected(player_id, protocol):
+	print("Client Connected: ", player_id)
+
+func _client_disconnected(player_id):
+	print("Client Disconnected: ", player_id)
 
 # Lobby
 remote func join_lobby(name):
