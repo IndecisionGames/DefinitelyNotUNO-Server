@@ -6,12 +6,14 @@ const PORT = 31416
 
 var network = WebSocketServer.new()
 var upnp = UPNP.new()
-var max_players = 8
 
 onready var Lobby = get_node("Lobby")
 onready var GameServer = get_node("GameServer")
 
+var max_players = 8
 var players = 0
+
+var ready_clients = 0
 
 func _ready():
 	network.connect("peer_connected", self, "_peer_connected")
@@ -74,16 +76,25 @@ remote func start_game():
 		var player = GameState.Player.new()
 		player.name = Lobby.players[i].name
 		GameState.players.append(player)
+	
+	print("Waiting for clients to ready")
+	ready_clients = 0
+	rpc("request_start", Rules.to_dict())
 
-	GameServer.start_game()
+remote func client_ready():
+	ready_clients += 1
+	if ready_clients == players:
+		print("Starting Game")
+		GameServer.start_game()
+	else:
+		print("Waiting for %s clients" % (ready_clients - players))
 
-remote func emit_game_won(player):
+func emit_game_won(player):
 	rpc("emit_game_won", player)
 
 # Server to Client
 func emit_game_start():
-	print("Starting Game")
-	rpc("emit_game_start", Rules.to_dict(), GameState.to_dict())
+	rpc("emit_game_start", GameState.to_dict())
 
 func emit_game_update():
 	rpc("emit_game_update", GameState.to_dict())
@@ -110,13 +121,13 @@ signal uno_request(player)
 signal wild_pick(colour)
 
 remote func request_play_card(player_id, card):
-		emit_signal("play_request", player_id, CardBase.new().load_from_dict(card))
+	emit_signal("play_request", player_id, CardBase.new().load_from_dict(card))
 
 remote func request_draw_card(player_id):
-		emit_signal("draw_request", player_id)
+	emit_signal("draw_request", player_id)
 
 remote func request_uno(player_id):
-		emit_signal("uno_request", player_id)
+	emit_signal("uno_request", player_id)
 
 remote func wild_pick(colour):
-		emit_signal("wild_pick", colour)
+	emit_signal("wild_pick", colour)
