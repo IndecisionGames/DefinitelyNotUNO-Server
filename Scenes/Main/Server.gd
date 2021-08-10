@@ -16,20 +16,21 @@ var players = 0
 func _ready():
 	network.connect("peer_connected", self, "_peer_connected")
 	network.connect("peer_disconnected", self, "_peer_disconnected")
-	network.connect("client_connected", self, "_client_connected")
-	network.connect("client_disconnected", self, "_client_disconnected")
 	start_server()
 	
 func _exit_tree():
-	upnp.delete_port_mapping(PORT, PORT)
+	upnp.delete_port_mapping(PORT, "TCP")
 
 func start_server():
 	upnp.discover()
-	upnp.add_port_mapping(PORT, PORT)
+	upnp.add_port_mapping(PORT, PORT, "", "TCP")
+	print()
 	
 	network.listen(PORT, PoolStringArray(), true)
 	get_tree().set_network_peer(network)
 	print("Server started")
+	print("IP: ", upnp.query_external_address())
+	print("Port: ", PORT)
 
 func _process(_delta):
 	if network.is_listening():
@@ -46,12 +47,6 @@ func _peer_disconnected(player_id):
 	Lobby.remove_player(player_id)
 	print("Player " + str(player_id) + " disconnected")
 	update_lobby()
-
-func _client_connected(player_id, protocol):
-	print("Client Connected: ", player_id)
-
-func _client_disconnected(player_id):
-	print("Client Disconnected: ", player_id)
 
 # Lobby
 remote func join_lobby(name):
