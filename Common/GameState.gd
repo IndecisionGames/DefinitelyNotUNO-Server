@@ -28,6 +28,9 @@ var pickup_type = 0
 var pickup_count = 0
 
 func is_playable(player, proposed_card: CardBase) -> bool:
+	if play_in_progress or waiting_action:
+		return false
+
 	if player != current_player:
 		if Rules.JUMP_IN:
 			# TODO: Stop from affecting player who has started turn. Otherwise someone could play mid/post draw

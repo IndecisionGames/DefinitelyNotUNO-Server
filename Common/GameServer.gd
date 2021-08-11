@@ -87,11 +87,13 @@ const wild_cards = {
 
 # Game
 func _play_card(player, card: CardBase, opening_card = false):
-	if !opening_card and !GameState.play_in_progress and !GameState.is_playable(player, card):
+	if !opening_card and !GameState.is_playable(player, card):
 		print("this card can not be played")
 		return
 
+	# Lock to prevent other players from playing
 	GameState.play_in_progress = true
+	Server.emit_game_update()
 
 	if player != GameState.current_player:
 		Server.emit_event(Types.event.JUMP_IN, player)
@@ -123,13 +125,13 @@ func _play_card(player, card: CardBase, opening_card = false):
 			GameState.pickup_count += 4
 
 	if GameState.current_card_colour == Types.card_colour.WILD:
-		Server.request_wild_pick(player)
 		GameState.waiting_action = true
-		Server.emit_game_update()
+		Server.request_wild_pick(player)
 
 	play_pile.append(card)
-	
+	# TODO: Rework Opening Card special cases
 	if opening_card:
+		GameState.play_in_progress = false
 		# Special cases
 		if GameState.skip_required: # Skip shoud move to the next turn but only skip 1 player
 			GameState.skip_required = false
@@ -156,6 +158,8 @@ func _draw_cards(player):
 	
 	# Allow player to play newly drawn card
 	if Rules.PLAY_AFTER_DRAW and !forced_pickup and GameState.is_playable(player, cards[0]):
+		GameState.play_in_progress = false
+		Server.emit_game_update()
 		return 
 
 	_turn_end()
@@ -163,6 +167,7 @@ func _draw_cards(player):
 func _turn_end():
 	# Prevent turn end if waiting for input
 	if GameState.waiting_action:
+		Server.emit_game_update()
 		return
 
 	# Automatic Uno Penalty 
@@ -190,9 +195,9 @@ func _turn_end():
 		if GameState.current_player < 0:
 			GameState.current_player += Rules.NUM_PLAYERS
 
-		GameState.play_in_progress = false
-		Server.emit_game_update()
-		_check_win()
+	GameState.play_in_progress = false
+	Server.emit_game_update()
+	_check_win()
 
 func _draw(num_to_draw = 1):
 	var drawn = []
@@ -208,7 +213,7 @@ func _draw(num_to_draw = 1):
 func _check_win():
 	for i in range(GameState.players.size()):
 		if GameState.players[i].cards.size() == 0:
-			GameState.waiting_action = true
+			GameState.play_in_progress = true
 			Server.emit_game_won(i)
 			return
 
