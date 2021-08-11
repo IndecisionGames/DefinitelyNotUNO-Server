@@ -41,7 +41,7 @@ func is_playable(player, proposed_card: CardBase) -> bool:
 	if pickup_required:
 		# Require matching Plus 2
 		if pickup_type == Types.pickup_type.PLUS2:
-			if proposed_card.type == Types.card_type.CARD_PLUS2 or (Rules.STACK_PLUS4_ON_PLUS2 and Types.card_type.CARD_PLUS4):
+			if proposed_card.type == Types.card_type.CARD_PLUS2 or (Rules.STACK_PLUS4_ON_PLUS2 and proposed_card.type == Types.card_type.CARD_PLUS4):
 				return true
 		# Require matching Plus 4
 		if pickup_type == Types.pickup_type.PLUS4:
