@@ -31,7 +31,7 @@ func start_server():
 	network.listen(PORT, PoolStringArray(), true)
 	get_tree().set_network_peer(network)
 	print("Server started")
-	print("IP: ", upnp.query_external_address())
+	print("Started server on: indecisiongames.ddns.net")
 	print("Port: ", PORT)
 
 func _process(_delta):
