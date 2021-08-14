@@ -21,9 +21,10 @@ func _ready():
 	pass
 
 # Lobby Management
-func add_player(player_id, player_name) -> bool:
+func add_player(player_id, player_name):
 	if player_ids.size() >= MAX_PLAYERS:
-		return false
+		Server.send_error("Game is Full")
+		return
 
 	player_name = player_name.strip_edges()
 	if !lobby_names.has(player_name):
@@ -34,18 +35,23 @@ func add_player(player_id, player_name) -> bool:
 
 	player_ids.append(player_id)
 	player_names.append(player_name)
-	return true
+
+	Server.start_lobby(player_id, instance_id, Rules.to_dict(), player_ids.size() == 1)
+	Server.sync_lobby(player_ids, player_names)
+	print("%s: %s" % [instance_id, player_names])
 
 func remove_player(player_id) -> bool:
 	var idx = player_ids.find(player_id)
 	player_ids.remove(idx)
-	lobby_names[player_names[idx]] -= 1
 	player_names.remove(idx)
 
+	Server.sync_lobby(player_ids, player_names)
+	print("%s: %s" % [instance_id, player_names])
 	return player_ids.size() > 0
 
 func update_rules(rules):
 	Rules.load_from_dict(rules)
+	Server.sync_rules(player_ids, Rules.to_dict())
 
 # Game Setup
 func start_game():

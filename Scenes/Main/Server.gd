@@ -45,9 +45,7 @@ func _peer_disconnected(id):
 	print("Player %s disconnected" % id)
 	var lobby_code = id_to_lobby_code[id]
 	if lobby_code:
-		if game_instances[lobby_code].remove_player(id):
-			_update_lobby(lobby_code)
-		else:
+		if !game_instances[lobby_code].remove_player(id):
 			# delete game if no players
 			remove_child(game_instances[lobby_code])
 			game_instances.erase(lobby_code)
@@ -67,39 +65,36 @@ remote func host_lobby(name):
 
 	new_instance.instance_id = lobby_code
 	game_instances[lobby_code] = new_instance
-	new_instance.add_player(id, name)
 	id_to_lobby_code[id] = lobby_code
-
-	rpc_id(id, "open_lobby", lobby_code, true)
-	_update_lobby(lobby_code)
+	new_instance.add_player(id, name)
 
 remote func join_lobby(name, lobby_code):
 	var id = get_tree().get_rpc_sender_id()
 	var instance = game_instances.get(lobby_code)
 
 	if !instance:
-		rpc_id(id, "join_error", "Game does not exist")
+		send_error(id, "Game does not exist")
 		return
-	if !instance.add_player(id, name):
-		rpc_id(id, "join_error", "Game is Full")
-		return
+
 	id_to_lobby_code[id] = lobby_code
+	instance.add_player(id, name)
 
-	rpc_id(id, "open_lobby", lobby_code, false)
-	_update_lobby(lobby_code)
+func start_lobby(id, lobby_code, rules, is_host):
+	rpc_id(id, "start_lobby", lobby_code, rules, is_host)
 
-func _update_lobby(lobby_code):
-	var names = game_instances[lobby_code].player_names
-	var ids = game_instances[lobby_code].player_ids
-	print("%s: %s" % [lobby_code, names])
-
+func sync_lobby(ids, names):
 	for id in ids:
-		rpc_id(id, "update_lobby", names)
+		rpc_id(id, "sync_lobby", names)
+
+func sync_rules(ids, rules):
+	for id in ids:
+		rpc_id(id, "sync_rules", rules)
 
 remote func update_rules(rules):
 	_get_instance().update_rules(rules)
-	for id in _get_instance().player_ids:
-		rpc_id(id, "sync_rules", rules)
+
+func send_error(id, msg):
+	rpc_id(id, "error", msg)
 
 # Game setup
 remote func start_game():
