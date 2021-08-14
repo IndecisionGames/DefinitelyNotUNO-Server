@@ -39,8 +39,8 @@ func add_player(player_id, player_name) -> bool:
 func remove_player(player_id) -> bool:
 	var idx = player_ids.find(player_id)
 	player_ids.remove(idx)
+	lobby_names[player_names[idx]] -= 1
 	player_names.remove(idx)
-	lobby_names[player_name] -= 1
 
 	return player_ids.size() > 0
 
