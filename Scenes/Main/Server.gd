@@ -42,21 +42,32 @@ func _peer_connected(player_id):
 	if players < 8:
 		players += 1
 		print("Player " + str(player_id) + " connected")
-		rpc_id(player_id, "join_server", players-1, players==1)
 
 func _peer_disconnected(player_id):
 	players -= 1
 	Lobby.remove_player(player_id)
 	print("Player " + str(player_id) + " disconnected")
-	update_lobby()
+	_update_lobby()
 
 # Lobby
-remote func join_lobby(name):
+remote func host_lobby(name):
 	var player_id = get_tree().get_rpc_sender_id()
 	Lobby.add_player(player_id, name)
-	update_lobby()
 
-func update_lobby():
+	rpc_id(player_id, "open_lobby", "1234", true)
+	_update_lobby()
+
+remote func join_lobby(name, join_code):
+	var player_id = get_tree().get_rpc_sender_id()
+	# Fake non existent Lobby Code
+	if join_code == "0000":
+		rpc_id(player_id, "join_error", "Lobby does not exist")
+
+	Lobby.add_player(player_id, name)
+	rpc_id(player_id, "open_lobby", join_code, false)
+	_update_lobby()
+
+func _update_lobby():
 	var names = Lobby.get_player_names()
 	print("Players: " + str(names))
 	rpc("update_lobby", names)
@@ -64,7 +75,6 @@ func update_lobby():
 remote func update_rules(rules):
 	Rules.load_from_dict(rules)
 	rpc("sync_rules", rules)
-
 
 # Game setup
 remote func start_game():
