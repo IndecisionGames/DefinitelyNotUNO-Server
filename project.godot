@@ -22,9 +22,9 @@ config/icon="res://icon.png"
 [autoload]
 
 Types="*res://Common/Types.gd"
-Rules="*res://Common/Rules.gd"
 CardBase="res://Common/CardBase.gd"
-GameState="*res://Common/GameState.gd"
+Rules="res://Common/Rules.gd"
+GameState="res://Common/GameState.gd"
 
 [display]
 

@@ -1,9 +1,12 @@
 extends Node
-# The following code should be identical in both the client and server
 
-const CardBase = preload("res://Common/CardBase.gd")
-
+onready var Rules = get_parent().get_node("Rules")
+onready var GameState = get_parent().get_node("GameState")
 onready var Server = get_parent()
+
+
+# The following code should be identical in both the client and server
+const CardBase = preload("res://Common/CardBase.gd")
 
 # Server only GameState values
 var deck = []
