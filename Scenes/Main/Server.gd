@@ -90,8 +90,8 @@ remote func return_to_lobby():
 remote func update_rules(rules):
 	_get_instance().update_rules(rules)
 
-remote func client_lobby_ready(player_id):
-	_get_instance().client_lobby_ready(player_id)
+remote func client_lobby_ready():
+	_get_instance().client_lobby_ready(get_tree().get_rpc_sender_id())
 
 #
 # Lobby to Client
