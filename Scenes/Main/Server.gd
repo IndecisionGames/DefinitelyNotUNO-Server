@@ -99,13 +99,9 @@ remote func client_lobby_ready():
 func start_lobby(id, lobby_code, is_host):
 	rpc_id(id, "start_lobby", lobby_code, is_host)
 
-func sync_lobby(ids, names):
+func sync_lobby(ids, names, rules):
 	for id in ids:
-		rpc_id(id, "sync_lobby", names)
-
-func sync_rules(ids, rules):
-	for id in ids:
-		rpc_id(id, "sync_rules", rules)
+		rpc_id(id, "sync_lobby", names, rules)
 
 #
 # Game setup

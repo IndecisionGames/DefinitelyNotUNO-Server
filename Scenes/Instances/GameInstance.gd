@@ -29,10 +29,10 @@ func _ready():
 func add_player(player_id, player_name):
 	# Validate
 	if in_game:
-		Server.send_error("Game in Progress, try again later")
+		Server.send_error(player_id, "Game in Progress, try again later")
 		return
 	if player_ids.size() >= MAX_PLAYERS:
-		Server.send_error("Game is Full")
+		Server.send_error(player_id, "Game is Full")
 		return
 
 	# Determine Player name
@@ -52,21 +52,22 @@ func add_player(player_id, player_name):
 	# Start Lobby on Client
 	Server.start_lobby(player_id, instance_id, host_id == player_id)
 	# Update Clients with latest Lobby
-	Server.sync_lobby(in_lobby_player_ids, player_names)
+	Server.sync_lobby(in_lobby_player_ids, player_names, Rules.to_dict())
 	print("%s: %s" % [instance_id, player_names])
 
 func remove_player(player_id) -> bool:
 	var idx = player_ids.find(player_id)
 	player_ids.remove(idx)
 	player_names.remove(idx)
+	in_lobby_player_ids.erase(player_id)
 
-	Server.sync_lobby(in_lobby_player_ids, player_names)
+	Server.sync_lobby(in_lobby_player_ids, player_names, Rules.to_dict())
 	print("%s: %s" % [instance_id, player_names])
 	return player_ids.size() > 0
 
 func update_rules(rules):
 	Rules.load_from_dict(rules)
-	Server.sync_rules(in_lobby_player_ids, Rules.to_dict())
+	Server.sync_lobby(in_lobby_player_ids, player_names, Rules.to_dict())
 
 func lobby():
 	in_lobby_player_ids = []
@@ -76,8 +77,7 @@ func lobby():
 
 func client_lobby_ready(player_id):
 	in_lobby_player_ids.append(player_id)
-	Server.sync_lobby([player_id], player_names)
-	Server.sync_rules([player_id], Rules.to_dict())
+	Server.sync_lobby([player_id], player_names, Rules.to_dict())
 
 #
 # Game Setup
